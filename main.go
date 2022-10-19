@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"bufio"
 	"log"
 	"runtime"
 	"strings"
@@ -31,21 +33,23 @@ const (
 	` + "\x00"
 )
 
-func makeRect(x float32) {
-	// x is the height value
-	x = []float32{
-		-0.5, x, 0,
-		-0.5, -0.5, 0,
-		0.5, -0.5, 0,
+func makeRect(x, y, s, e float32) []float32 {
+	// x is the north value
+	// y is the west value
+	// s is the south value
+	// e is the east value
+	return []float32{
+		y, x, 0,
+		y, s, 0,
+		e, s, 0,
 	
-		-0.5, x, 0,
-		0.5, x, 0,
-		0.5, -0.5, 0,
+		y, x, 0,
+		e, x, 0,
+		e, s, 0,
 	}
-	return x
 }
 
-var (
+var ( // pefectly square square
 	square = []float32{
 		-0.5, 0.5, 0,
 		-0.5, -0.5, 0,
@@ -57,7 +61,6 @@ var (
 	}
 )
 
-
 func main() {
 	runtime.LockOSThread()
 
@@ -65,18 +68,29 @@ func main() {
 	defer glfw.Terminate()
 	program := initOpenGL()
 
-	vao := makeVao(square)
+	shape := square
+
+	vao := makeVao(shape)
+	go consoleLogic()
 	for !window.ShouldClose() {
-		draw(vao, window, program)
+		draw(vao, window, program, shape)
 	}
 }
 
-func draw(vao uint32, window *glfw.Window, program uint32) {
+func consoleLogic() int {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("how many cylinders do you want?")
+	text, _ := reader.ReadString('\n')
+	fmt.Println(text)
+	return 0
+}
+
+func draw(vao uint32, window *glfw.Window, program uint32, shape []float32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
 
 	gl.BindVertexArray(vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(square)/3))
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(shape)/3))
 
 	glfw.PollEvents()
 	window.SwapBuffers()
@@ -93,7 +107,7 @@ func initGlfw() *glfw.Window {
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
-	window, err := glfw.CreateWindow(width, height, "Conway's Game of Life", nil, nil)
+	window, err := glfw.CreateWindow(width, height, "visualizer", nil, nil)
 	if err != nil {
 		panic(err)
 	}
