@@ -1,20 +1,20 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"bufio"
+	"fmt"
 	"log"
-	"runtime"
+	"os"
 	"strings"
 
-	"github.com/go-gl/gl/v4.1-core/gl" // OR: github.com/go-gl/gl/v2.1/gl
+	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/snorresovold/golang-visualizer/algos"
 )
 
 const (
-	width  = 500
-	height = 500
+	width  = 1000
+	height = 1000
 
 	vertexShaderSource = `
 		#version 410
@@ -42,7 +42,7 @@ func makeRect(x, y, s, e float32) []float32 {
 		y, x, 0,
 		y, s, 0,
 		e, s, 0,
-	
+
 		y, x, 0,
 		e, x, 0,
 		e, s, 0,
@@ -62,19 +62,32 @@ var ( // pefectly square square
 )
 
 func main() {
-	runtime.LockOSThread()
+	s := make([]int, 5)
+	s[0] = 123
+	s[1] = 4234
+	s[2] = 23
+	s[3] = 103
+	s[4] = 31
 
-	window := initGlfw()
-	defer glfw.Terminate()
-	program := initOpenGL()
+	x := algos.InsertionSort(s)
+	fmt.Println("start", s)
+	fmt.Println("final product", x)
+	/*
+		runtime.LockOSThread()
 
-	shape := square
+		window := initGlfw()
+		defer glfw.Terminate()
+		program := initOpenGL()
 
-	vao := makeVao(shape)
-	go consoleLogic()
-	for !window.ShouldClose() {
-		draw(vao, window, program, shape)
-	}
+		shape := square
+
+		vao := makeVao(shape)
+		go consoleLogic()
+		for !window.ShouldClose() {
+			draw(vao, window, program, shape)
+		}
+	*/
+
 }
 
 func consoleLogic() int {
