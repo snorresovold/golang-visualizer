@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/snorresovold/golang-visualizer/algos"
 )
 
 const (
@@ -62,16 +62,8 @@ var ( // pefectly square square
 )
 
 func main() {
-	s := make([]int, 5)
-	s[0] = 123
-	s[1] = 4234
-	s[2] = 23
-	s[3] = 103
-	s[4] = 31
-
-	x := algos.InsertionSort(s)
-	fmt.Println("start", s)
-	fmt.Println("final product", x)
+	x := generateSlice(19)
+	fmt.Println(x)
 	/*
 		runtime.LockOSThread()
 
@@ -194,10 +186,13 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 	return shader, nil
 }
 
-func generateArray(x int) []float64 {
+func generateSlice(x int) []float64 {
+	min := -0.5
+	max := 0.5
 	items := []float64{}
 	for i := 0; i < x; i++ {
 		fmt.Println(i)
+		items = append(items, min+rand.Float64()*(max-min))
 	}
 	return items
 }
