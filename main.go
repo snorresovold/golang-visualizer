@@ -193,3 +193,11 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 
 	return shader, nil
 }
+
+func generateArray(x int) []float64 {
+	items := []float64{}
+	for i := 0; i < x; i++ {
+		fmt.Println(i)
+	}
+	return items
+}
