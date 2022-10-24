@@ -186,10 +186,10 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 	return shader, nil
 }
 
-func generateSlice(x int) []float64 {
+func generateSlice(x int) []float32 {
 	min := -0.5
 	max := 0.5
-	items := []float64{}
+	items := []float32{}
 	for i := 0; i < x; i++ {
 		fmt.Println(i)
 		items = append(items, min+rand.Float64()*(max-min))
