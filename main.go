@@ -64,7 +64,7 @@ var ( // pefectly square square
 func main() {
 	x := generateSlice(19)
 	fmt.Println(x)
-	/*
+/* 
 		runtime.LockOSThread()
 
 		window := initGlfw()
@@ -78,8 +78,7 @@ func main() {
 		for !window.ShouldClose() {
 			draw(vao, window, program, shape)
 		}
-	*/
-
+ */
 }
 
 func consoleLogic() int {
@@ -191,8 +190,10 @@ func generateSlice(x int) []float32 {
 	max := 0.5
 	items := []float32{}
 	for i := 0; i < x; i++ {
+		f64 := min+rand.Float64()*(max-min)
+		f32 := float32(f64)
 		fmt.Println(i)
-		items = append(items, min+rand.Float64()*(max-min))
+		items = append(items, f32)
 	}
 	return items
 }
