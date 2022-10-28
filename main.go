@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
@@ -13,8 +14,8 @@ import (
 )
 
 const (
-	width  = 1000
-	height = 1000
+	width  = 500
+	height = 500
 
 	vertexShaderSource = `
 		#version 410
@@ -62,25 +63,35 @@ var ( // pefectly square square
 )
 
 func main() {
-	x := generateSlice(19)
-	fmt.Println(x)
-/* 
-		runtime.LockOSThread()
+	items := generateSlice(5)
+	runtime.LockOSThread()
 
-		window := initGlfw()
-		defer glfw.Terminate()
-		program := initOpenGL()
+	window := initGlfw()
+	defer glfw.Terminate()
+	program := initOpenGL()
 
-		shape := square
+	//shape := square
 
-		vao := makeVao(shape)
-		go consoleLogic()
-		for !window.ShouldClose() {
-			draw(vao, window, program, shape)
+	var rects [][]float32
+	for i := 0; i < len(items); i++ {
+		fmt.Println(items[i])
+		rect := makeRect(items[i], 1, -1, -1)
+		rects = append(rects, rect)
+		//append rect to rects
+	}
+
+	for !window.ShouldClose() {
+		for i := 0; i < len(rects); i++ {
+			vao := makeVao(rects[i])
+			fmt.Println(rects[i])
+			draw(vao, window, program, rects[i])
+			fmt.Println(i)
+			window.SwapBuffers()
 		}
- */
+	}
 }
 
+//draw(vao, window, program, shape)
 func consoleLogic() int {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("how many cylinders do you want?")
@@ -190,7 +201,7 @@ func generateSlice(x int) []float32 {
 	max := 0.5
 	items := []float32{}
 	for i := 0; i < x; i++ {
-		f64 := min+rand.Float64()*(max-min)
+		f64 := min + rand.Float64()*(max-min)
 		f32 := float32(f64)
 		fmt.Println(i)
 		items = append(items, f32)
