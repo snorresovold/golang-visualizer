@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"runtime"
@@ -62,6 +63,21 @@ var ( // pefectly square square
 	}
 )
 
+type Node struct {
+	start     int
+	end       int
+	height    int
+	switching bool
+}
+
+type NodeList struct {
+	cylinders []cylinder
+}
+
+func (cl cylinderList)  float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
+
 func main() {
 	items := generateSlice(5)
 	runtime.LockOSThread()
@@ -73,9 +89,10 @@ func main() {
 	//shape := square
 
 	var rects [][]float32
+	//lengt :=
 	for i := 0; i < len(items); i++ {
 		fmt.Println(items[i])
-		rect := makeRect(items[i], 1, -1, -1)
+		rect := makeRect(items[i], 1, -1, -0.5)
 		rects = append(rects, rect)
 		//append rect to rects
 	}
