@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -21,18 +20,18 @@ func (cl *cellList) AddCell(c cell) []cell {
 	return cl.cells
 }
 
+func (cl *cellList) SwitchCell(c1 cell, c2 cell) []cell {
+	swapC := reflect.Swapper(cl.cells)
+	swapC(0, 1)
+	return cl.cells
+}
+
 func main() {
 	cl := cellList{}
 	c := cell{false, 1, 2, 3}
 	cl.AddCell(c)
 	c2 := cell{true, 100, 2123, 3342}
 	cl.AddCell(c2)
-	fmt.Println(cl.cells)
-
-	swapC := reflect.Swapper(cl.cells)
-	cl.cells[0].switching, cl.cells[1].switching = true, true
-	swapC(0, 1)
-	fmt.Println(cl.cells)
-	cl.cells[0].switching, cl.cells[1].switching = false, false
-	fmt.Println(cl.cells)
+	//fmt.Println(cl.cells)
+	cl.SwitchCell(cl.cells[0], cl.cells[1])
 }
