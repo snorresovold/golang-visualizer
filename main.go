@@ -13,13 +13,29 @@ import (
 
 type cell struct {
 	switching bool
-	height    int
-	start     int
-	end       int
+	height    float32
+	start     float32
+	end       float32
+}
+
+func (c *cell) makeSlice() []float32 {
+	return []float32{
+		c.start, c.height, 0,
+		c.start, 0, 0,
+		c.end, 0, 0,
+
+		c.start, c.height, 0,
+		c.end, c.height, 0,
+		c.end, 0, 0,
+	}
 }
 
 type cellList struct {
 	cells []cell
+}
+
+func (cl *cellList) MakeCells() []cell {
+
 }
 
 func (cl *cellList) AddCell(c cell) []cell {
@@ -40,9 +56,9 @@ func main() {
 	defer glfw.Terminate()
 	program := initOpenGL()
 	cl := cellList{}
-	c := cell{false, 1, 2, 3}
+	c := cell{false, 0.5, 0, 0.5}
 	cl.AddCell(c)
-	c2 := cell{true, 100, 2123, 3342}
+	c2 := cell{false, 0.5, 1, 0.5}
 	cl.AddCell(c2)
 	//fmt.Println(cl.cells)
 	cl.SwitchCell(cl.cells[0], cl.cells[1])
@@ -50,10 +66,9 @@ func main() {
 
 	for !window.ShouldClose() {
 		for i := 0; i < len(cl.cells); i++ {
-			vao := makeVao(cl.cells[i])
+			vao := makeVao(cl.cells[i].makeSlice())
 			fmt.Println(cl.cells[i])
-			draw(vao, window, program)
-			fmt.Println(i)
+			draw(vao, window, program, cl.cells[i].makeSlice())
 			window.SwapBuffers()
 		}
 	}
