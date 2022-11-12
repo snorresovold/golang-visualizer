@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"reflect"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -21,21 +23,40 @@ type cell struct {
 func (c *cell) makeSlice() []float32 {
 	return []float32{
 		c.start, c.height, 0,
-		c.start, 0, 0,
-		c.end, 0, 0,
+		c.start, -1, 0,
+		c.end, -1, 0,
 
 		c.start, c.height, 0,
 		c.end, c.height, 0,
-		c.end, 0, 0,
+		c.end, -1, 0,
 	}
+}
+
+func (c *cell) draw(shape []float32) {
+	/*
+		if !c.alive {
+			return
+		}
+	*/
+
+	gl.BindVertexArray(makeVao(c.makeSlice()))
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(shape)/3))
 }
 
 type cellList struct {
 	cells []cell
 }
 
-func (cl *cellList) MakeCells() []cell {
-
+func (cl *cellList) MakeCells(amount int) cellList {
+	start := -1.0
+	var middle float32 = 2 / float32(amount)
+	for x := 1; x <= amount; x++ {
+		end := start + float64(middle)
+		c := cell{false, rand32(), float32(start), float32(end)}
+		cl.AddCell(c)
+		start = end
+	}
+	return *cl
 }
 
 func (cl *cellList) AddCell(c cell) []cell {
@@ -56,22 +77,27 @@ func main() {
 	defer glfw.Terminate()
 	program := initOpenGL()
 	cl := cellList{}
-	c := cell{false, 0.5, 0, 0.5}
-	cl.AddCell(c)
-	c2 := cell{false, 0.5, 1, 0.5}
-	cl.AddCell(c2)
+	cl.MakeCells(10)
 	//fmt.Println(cl.cells)
 	cl.SwitchCell(cl.cells[0], cl.cells[1])
 	fmt.Println(cl)
 
 	for !window.ShouldClose() {
 		for i := 0; i < len(cl.cells); i++ {
-			vao := makeVao(cl.cells[i].makeSlice())
+			//vao := makeVao(cl.cells[i].makeSlice())
 			fmt.Println(cl.cells[i])
-			draw(vao, window, program, cl.cells[i].makeSlice())
-			window.SwapBuffers()
+			draw(cl, window, program, cl.cells[i].makeSlice())
+			//window.SwapBuffers()
 		}
 	}
+}
+
+func rand32() float32 {
+	rand.Seed(time.Now().UnixNano())
+	min := -1.0
+	max := 1.0
+	x := min + rand.Float64()*(max-min)
+	return float32(x)
 }
 
 const (
@@ -95,12 +121,16 @@ const (
 	` + "\x00"
 )
 
-func draw(vao uint32, window *glfw.Window, program uint32, shape []float32) {
+func draw(cl cellList, window *glfw.Window, program uint32, shape []float32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
 
-	gl.BindVertexArray(vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(shape)/3))
+	for x := range cl.cells {
+		for _, c := range cl.cells {
+			fmt.Println(x)
+			c.draw(shape)
+		}
+	}
 
 	glfw.PollEvents()
 	window.SwapBuffers()
@@ -157,7 +187,6 @@ func makeVao(points []float32) uint32 {
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
-
 	var vao uint32
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
