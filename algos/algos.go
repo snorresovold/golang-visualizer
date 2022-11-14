@@ -2,7 +2,7 @@ package algos
 
 import "fmt"
 
-func InsertionSort(items []int) []int {
+func InsertionSort(items []float32) []float32 {
 	var n = len(items)
 	for i := 1; i < n; i++ {
 		j := i

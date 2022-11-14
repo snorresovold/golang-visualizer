@@ -47,6 +47,24 @@ type cellList struct {
 	cells []cell
 }
 
+func (cl *cellList) InsertionSort(items []cell) []cell {
+	var n = len(items)
+	for i := 1; i < n; i++ {
+		j := i
+		for j > 0 {
+			// if the thing before j
+			if items[j-1].height > items[j].height {
+				// switch items[j-1] and items[j]
+				items[j-1].start, items[j].start = items[j].start, items[j-1].start
+				items[j-1].end, items[j].end = items[j].end, items[j-1].end
+			}
+			// sends j one step back
+			j = j - 1
+		}
+	}
+	return items
+}
+
 func (cl *cellList) MakeCells(amount int) cellList {
 	start := -1.0
 	var middle float32 = 2 / float32(amount)
@@ -84,10 +102,9 @@ func main() {
 
 	for !window.ShouldClose() {
 		for i := 0; i < len(cl.cells); i++ {
-			//vao := makeVao(cl.cells[i].makeSlice())
+			cl.InsertionSort(cl.cells)
 			fmt.Println(cl.cells[i])
 			draw(cl, window, program, cl.cells[i].makeSlice())
-			//window.SwapBuffers()
 		}
 	}
 }
@@ -125,11 +142,8 @@ func draw(cl cellList, window *glfw.Window, program uint32, shape []float32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
 
-	for x := range cl.cells {
-		for _, c := range cl.cells {
-			fmt.Println(x)
-			c.draw(shape)
-		}
+	for _, c := range cl.cells {
+		c.draw(shape)
 	}
 
 	glfw.PollEvents()
