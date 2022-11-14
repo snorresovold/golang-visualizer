@@ -49,20 +49,32 @@ type cellList struct {
 
 func (cl *cellList) InsertionSort(items []cell) []cell {
 	var n = len(items)
-	for i := 1; i < n; i++ {
+	for i := 0; i < n; i++ {
 		j := i
 		for j > 0 {
 			// if the thing before j
 			if items[j-1].height > items[j].height {
 				// switch items[j-1] and items[j]
-				items[j-1].start, items[j].start = items[j].start, items[j-1].start
-				items[j-1].end, items[j].end = items[j].end, items[j-1].end
+				items[j-1], items[j] = items[j], items[j-1]
 			}
 			// sends j one step back
 			j = j - 1
 		}
 	}
-	return items
+	cl.SetStartEnd(items)
+	return cl.cells
+}
+
+func (cl *cellList) SetStartEnd(items []cell) []cell {
+	start := -1.0
+	var middle float32 = 2 / float32(len(items))
+	for i := 0; i < len(items); i++ {
+		end := start + float64(middle)
+		items[i].start = float32(start)
+		items[i].end = float32(end)
+		start = end
+	}
+	return cl.cells
 }
 
 func (cl *cellList) MakeCells(amount int) cellList {
@@ -95,17 +107,18 @@ func main() {
 	defer glfw.Terminate()
 	program := initOpenGL()
 	cl := cellList{}
-	cl.MakeCells(10)
+	cl.MakeCells(100)
 	//fmt.Println(cl.cells)
-	cl.SwitchCell(cl.cells[0], cl.cells[1])
-	fmt.Println(cl)
+	cl.InsertionSort(cl.cells)
+	fps := 2
+	t := time.Now()
 
 	for !window.ShouldClose() {
 		for i := 0; i < len(cl.cells); i++ {
-			cl.InsertionSort(cl.cells)
-			fmt.Println(cl.cells[i])
+			//fmt.Println(cl.cells[0], cl.cells[1])
 			draw(cl, window, program, cl.cells[i].makeSlice())
 		}
+		time.Sleep(time.Second/time.Duration(fps) - time.Since(t))
 	}
 }
 
@@ -115,6 +128,18 @@ func rand32() float32 {
 	max := 1.0
 	x := min + rand.Float64()*(max-min)
 	return float32(x)
+}
+
+func draw(cl cellList, window *glfw.Window, program uint32, shape []float32) {
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	gl.UseProgram(program)
+
+	for _, c := range cl.cells {
+		c.draw(shape)
+	}
+
+	glfw.PollEvents()
+	window.SwapBuffers()
 }
 
 const (
@@ -138,16 +163,43 @@ const (
 	` + "\x00"
 )
 
-func draw(cl cellList, window *glfw.Window, program uint32, shape []float32) {
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.UseProgram(program)
+// makeVao initializes and returns a vertex array from the points provided.
+func makeVao(points []float32) uint32 {
+	var vbo uint32
+	gl.GenBuffers(1, &vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
+	var vao uint32
+	gl.GenVertexArrays(1, &vao)
+	gl.BindVertexArray(vao)
+	gl.EnableVertexAttribArray(0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 
-	for _, c := range cl.cells {
-		c.draw(shape)
+	return vao
+}
+
+func compileShader(source string, shaderType uint32) (uint32, error) {
+	shader := gl.CreateShader(shaderType)
+
+	csources, free := gl.Strs(source)
+	gl.ShaderSource(shader, 1, csources, nil)
+	free()
+	gl.CompileShader(shader)
+
+	var status int32
+	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
+	if status == gl.FALSE {
+		var logLength int32
+		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
+
+		log := strings.Repeat("\x00", int(logLength+1))
+		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
+
+		return 0, fmt.Errorf("failed to compile %v: %v", source, log)
 	}
 
-	glfw.PollEvents()
-	window.SwapBuffers()
+	return shader, nil
 }
 
 // initGlfw initializes glfw and returns a Window to use.
@@ -193,43 +245,4 @@ func initOpenGL() uint32 {
 	gl.AttachShader(prog, fragmentShader)
 	gl.LinkProgram(prog)
 	return prog
-}
-
-// makeVao initializes and returns a vertex array from the points provided.
-func makeVao(points []float32) uint32 {
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-	gl.EnableVertexAttribArray(0)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
-
-	return vao
-}
-
-func compileShader(source string, shaderType uint32) (uint32, error) {
-	shader := gl.CreateShader(shaderType)
-
-	csources, free := gl.Strs(source)
-	gl.ShaderSource(shader, 1, csources, nil)
-	free()
-	gl.CompileShader(shader)
-
-	var status int32
-	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
-	if status == gl.FALSE {
-		var logLength int32
-		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
-
-		log := strings.Repeat("\x00", int(logLength+1))
-		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
-
-		return 0, fmt.Errorf("failed to compile %v: %v", source, log)
-	}
-
-	return shader, nil
 }
