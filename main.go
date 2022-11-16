@@ -107,7 +107,7 @@ func main() {
 	defer glfw.Terminate()
 	program := initOpenGL()
 	cl := cellList{}
-	cl.MakeCells(10000)
+	cl.MakeCells(101)
 	//fmt.Println(cl.cells)
 	cl.InsertionSort(cl.cells)
 	fps := 2
