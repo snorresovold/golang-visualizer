@@ -107,18 +107,30 @@ func main() {
 	defer glfw.Terminate()
 	program := initOpenGL()
 	cl := cellList{}
-	cl.MakeCells(101)
+	cl.MakeCells(10)
 	//fmt.Println(cl.cells)
-	cl.InsertionSort(cl.cells)
-	fps := 2
-	t := time.Now()
+	//cl.InsertionSort(cl.cells)
+	//fps := 2
+	//t := time.Now()
 
 	for !window.ShouldClose() {
 		for i := 0; i < len(cl.cells); i++ {
 			//fmt.Println(cl.cells[0], cl.cells[1])
 			draw(cl, window, program, cl.cells[i].makeSlice())
 		}
-		time.Sleep(time.Second/time.Duration(fps) - time.Since(t))
+		for i := 0; i < n; i++ {
+			j := i
+			for j > 0 {
+				// if the thing before j
+				if cl.cells[j-1].height > cl.cells[j].height {
+					// switch items[j-1] and items[j]
+					cl.cells[j-1], cl.cells[j] = cl.cells[j], cl.cells[j-1]
+				}
+				// sends j one step back
+				j = j - 1
+			}
+			draw(cl, window, program, cl.cells[i].makeSlice())
+		}
 	}
 }
 
